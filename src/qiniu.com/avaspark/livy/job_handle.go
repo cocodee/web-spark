@@ -1,17 +1,14 @@
 package livy
 
 import (
-	"context"
 	"net/http"
 
 	"time"
-
-	"qiniupkg.com/x/rpc.v7"
 )
 
 //JobListener to respond to Job Event
 type JobListener interface {
-	StatusChanged(status string)
+	StateChanged(state JobStateResult)
 }
 
 //JobHandle is returned after a job request is submitted, to track job status
@@ -22,13 +19,12 @@ type JobHandle struct {
 
 	listeners []JobListener
 	state     string
-	ticker    *time.Ticker
 	done      chan struct{}
 }
 
 //JobStateResult is the state of submitted job
 type JobStateResult struct {
-	ID    string `json:"id"`
+	ID    int    `json:"id"`
 	State string `json:"state"`
 }
 
@@ -38,18 +34,25 @@ func NewJobHandle(baseURL string, batchID string) *JobHandle {
 		baseURL:   baseURL,
 		batchID:   batchID,
 		duration:  5 * time.Second,
-		listeners: make([]JobListener, 10),
+		listeners: make([]JobListener, 0),
+		state:     "new",
 	}
+}
+
+//GetBatchID returns job batchID
+func (jobHandle *JobHandle) GetBatchID() string {
+	return jobHandle.batchID
 }
 
 //AddListener add a state lister
 func (jobHandle *JobHandle) AddListener(listener JobListener) {
 	jobHandle.listeners = append(jobHandle.listeners, listener)
+	println("listener added")
 }
 
 //Start polling result
 func (jobHandle *JobHandle) Start() {
-	jobHandle.ticker = time.NewTicker(jobHandle.duration)
+	println("start polling")
 	jobHandle.done = make(chan struct{}, 1)
 	go func() {
 		jobHandle.pollResult()
@@ -63,26 +66,37 @@ func (jobHandle *JobHandle) Stop() {
 
 func (jobHandle *JobHandle) callback(result JobStateResult) {
 	print(result.State)
+	for _, listener := range jobHandle.listeners {
+		if listener != nil {
+			listener.StateChanged(result)
+		}
+	}
 }
 
 func (jobHandle *JobHandle) pollResult() {
 	for {
 		select {
-		case <-jobHandle.ticker.C:
-			jobHandle.sendRequest()
 		case <-jobHandle.done:
-			jobHandle.ticker.Stop()
 			return
+		default:
+			println("send request")
+			jobHandle.sendRequest()
+			time.Sleep(jobHandle.duration)
 		}
 	}
 }
 
 func (jobHandle *JobHandle) sendRequest() {
 	url1 := jobHandle.baseURL + "/batches/" + jobHandle.batchID + "/state"
-	rpcClient := rpc.DefaultClient
+	println(url1)
+	rpcClient := DefaultClient
 	result := JobStateResult{}
-	err := rpcClient.Call(context.TODO(), &result, http.MethodGet, url1)
+	err := rpcClient.Call(nil, &result, http.MethodGet, url1)
 	if err != nil {
+		println("job state request error")
+	}
+	if result.State != jobHandle.state {
+		jobHandle.state = result.State
 		jobHandle.callback(result)
 	}
 }
