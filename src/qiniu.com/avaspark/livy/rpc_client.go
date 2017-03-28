@@ -287,8 +287,6 @@ func (r Client) CallWithJson(
 
 	resp, err := r.DoRequestWithJson(ctx, method, url1, param)
 	if err != nil {
-		println("hello")
-		print(resp.Body)
 		return err
 	}
 	return CallRet(ctx, ret, resp)

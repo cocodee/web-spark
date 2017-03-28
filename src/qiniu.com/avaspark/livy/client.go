@@ -36,7 +36,7 @@ func (client *LivyClient) sendRequest(job Job) (jobHandle *JobHandle, err error)
 	url1 := client.BaseURL + "/batches"
 	rpcClient := DefaultClient
 	result := JobResult{}
-
+	println(url1)
 	err = rpcClient.CallWithJson(nil, &result, http.MethodPost, url1, job)
 	if err != nil {
 		return nil, err

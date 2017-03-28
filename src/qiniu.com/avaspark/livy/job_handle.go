@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+const (
+	stateStarting = "starting"
+	stateRunning  = "running"
+	stateSuccess  = "success"
+	stateDead     = "dead"
+)
+
 //JobListener to respond to Job Event
 type JobListener interface {
 	StateChanged(state JobStateResult)

@@ -10,10 +10,10 @@ type LivyListener struct {
 }
 
 func (ll *LivyListener) StateChanged(state JobStateResult) {
-	ll.t.Logf("Livy listener:%s", state)
+	ll.t.Logf("Livy listener:%v", state)
 }
 func TestClient(t *testing.T) {
-	client := &Client{
+	client := &LivyClient{
 		BaseURL: "http://61.153.154.154:8998",
 	}
 	handle, err := client.SubmitJob(Job{
@@ -24,7 +24,7 @@ func TestClient(t *testing.T) {
 		t.Errorf("send request error:%v", err)
 
 	}
-	handle.AddListener(&LivyListener{})
+	handle.AddListener(&LivyListener{t: t})
 	handle.Start()
 	time.Sleep(5 * time.Minute)
 }
