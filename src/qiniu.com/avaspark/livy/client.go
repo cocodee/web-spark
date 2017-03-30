@@ -25,6 +25,7 @@ type Job struct {
 	ExecutorMemory string                 `json:"executorMemory,omitempty"`
 	ExecutorCores  int                    `json:"executorCores,omitempty"`
 	Conf           map[string]interface{} `json:"conf,omitempty"`
+	UID            string                 `json:"uid,omitempty"`
 }
 
 //SubmitJob submits a job request to livy server and returns a JobHandle
@@ -41,7 +42,6 @@ func (client *LivyClient) sendRequest(job Job) (jobHandle *JobHandle, err error)
 	if err != nil {
 		return nil, err
 	}
-
-	jobHandle = NewJobHandle(client.BaseURL, strconv.Itoa(result.ID))
+	jobHandle = NewJobHandle(job.UID, client.BaseURL, strconv.Itoa(result.ID))
 	return jobHandle, nil
 }

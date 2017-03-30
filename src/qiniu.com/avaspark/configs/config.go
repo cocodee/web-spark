@@ -6,7 +6,10 @@ import "qiniu.com/avaspark/services"
 type AvaSparkConf struct {
 	HttpPort string `json:"http_port"`
 	HttpAddr string `json:"http_addr"`
-
+	DB       struct {
+		Address  string `json:"address"`
+		Database string `json:"database"`
+	} `json:"db"`
 	SparkHost string                   `json:"sparkHost`
 	PulpConf  services.PulpServiceConf `json:"pulpConf"`
 }

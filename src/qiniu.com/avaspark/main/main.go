@@ -5,6 +5,7 @@ import (
 	"github.com/teapots/params"
 	"github.com/teapots/teapot"
 	"qiniu.com/avaspark/configs"
+	"qiniu.com/avaspark/db"
 	"qiniu.com/avaspark/services"
 )
 
@@ -28,6 +29,11 @@ func main() {
 	tea := teapot.New()
 	tea.ImportConfig(teaConf)
 	tea.Provide(params.ParamsParser())
+	mongodb := &db.MongoDB{
+		Address:  cfg.DB.Address,
+		Database: cfg.DB.Database,
+	}
+	tea.Provide(mongodb)
 	pulpServiceProvider := services.NewPulpServiceProvider(cfg.SparkHost, cfg.PulpConf)
 	tea.Provide(pulpServiceProvider)
 	tea.Routers(
