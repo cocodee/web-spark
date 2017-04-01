@@ -11,16 +11,13 @@ import (
 
 	"sync"
 
-	"time"
-
+	"github.com/nsqio/go-nsq"
 	"github.com/qiniu/log.v1"
 	"github.com/qiniu/uuid"
-	"gopkg.in/mgo.v2/bson"
 	"qiniu.com/avaspark/db"
 	"qiniu.com/avaspark/livy"
-	"qiniu.com/avaspark/models"
 	"qiniu.com/avaspark/net"
-	"qiniu.com/avaspark/utils"
+	"qiniu.com/avaspark/queue"
 )
 
 type PulpServiceConf struct {
@@ -39,17 +36,14 @@ type PulpService struct {
 	DB                  *db.MongoDB          `inject`
 }
 
-const (
-	CollectionBatchJob = "batchjob"
-)
-
 func (l *PulpService) SubmitJob() (err error) {
 	url := l.Params.Get("image")
 	if url == "" {
 		net.ErrWriteResp(l.Rw, 401, "request should include file url", nil)
 		return
 	}
-	err = l.PulpServiceProvider.SubmitJob(url, l.DB)
+	//err = l.PulpServiceProvider.SubmitJob(url, l.DB)
+	_, err = l.PulpServiceProvider.QueueJob(url)
 	if err != nil {
 		net.ErrWriteResp(l.Rw, 401, err.Error(), nil)
 		return
@@ -81,7 +75,7 @@ type PulpServiceProvider struct {
 	lock       *sync.RWMutex
 }
 
-func (l *PulpServiceProvider) SubmitJob(url string, db *db.MongoDB) (err error) {
+func (l *PulpServiceProvider) SubmitJob(url string, mdb *db.MongoDB) (err error) {
 	log.Debugf("pulpConf:%v", l.Conf)
 	uid, _ := uuid.Gen(16)
 	job := livy.Job{
@@ -97,12 +91,12 @@ func (l *PulpServiceProvider) SubmitJob(url string, db *db.MongoDB) (err error) 
 		return
 	}
 	job.UID = uid
-	err = l.InsertJob(db, job, jobHandle.GetBatchID())
+	err = db.InsertJob(mdb, job, jobHandle.GetBatchID())
 	if err != nil {
 		return
 	}
 	jobHandle.AddListener(func(state livy.JobState) {
-		l.UpdateJobState(db, job.UID, state.State)
+		db.UpdateJobState(mdb, job.UID, state.State)
 		if state.State == livy.StateDead || state.State == livy.StateSuccess || state.State == livy.StateTimeout {
 			log.Debugf("job finished with state:%v", state.State)
 			l.lock.Lock()
@@ -128,38 +122,31 @@ func (l *PulpServiceProvider) SubmitJob(url string, db *db.MongoDB) (err error) 
 	return err
 }
 
-func (l *PulpServiceProvider) InsertJob(db *db.MongoDB, job livy.Job, batchID string) (err error) {
-	conn := db.NewConn()
-	//defer conn.Close()
+func (l *PulpServiceProvider) QueueJob(url string) (uid string, err error) {
+	log.Debugf("pulpConf:%v", l.Conf)
+	uid, _ = uuid.Gen(16)
+	job := livy.Job{
+		File: l.Conf.File,
+		Args: []string{url},
 
-	c := conn.C(CollectionBatchJob)
+		PyFiles: l.Conf.PyFiles,
+		UID:     uid,
+	}
 	job_json, err := json.Marshal(job)
 	log.Debugf("job:%v", string(job_json))
-	err = c.Insert(models.BatchJob{
-		BatchJobID:  job.UID,
-		JobConf:     utils.ToJson(job),
-		LivyBatchID: batchID,
-		State:       livy.StateNew,
-		CreateAt:    time.Now(),
-		UpdateAt:    time.Now(),
-	})
-	if err != nil {
-		log.Error("insert into mongodb failed:%v", job)
-	}
-	return
-}
 
-func (l *PulpServiceProvider) UpdateJobState(db *db.MongoDB, batchJobID string, state string) (err error) {
-	conn := db.NewConn()
-	defer conn.Close()
-
-	c := conn.C(CollectionBatchJob)
-	err = c.Update(bson.M{"batch_job_id": batchJobID}, bson.M{"$set": bson.M{
-		"state":     state,
-		"update_at": time.Now()},
-	})
-	if err != nil {
-		log.Errorf("update mongodb failed:%v", batchJobID)
+	producerHelper := queue.ProducerHelper{
+		Topic: "avaspark",
+		Conf:  nsq.NewConfig(),
+		NSQD:  "127.0.0.1:4150",
 	}
-	return
+	producer, err := producerHelper.New()
+	if err != nil {
+		return
+	}
+	err = producerHelper.Publish(producer, job)
+	if err != nil {
+		return
+	}
+	return uid, nil
 }
