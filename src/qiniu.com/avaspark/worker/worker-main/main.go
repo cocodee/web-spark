@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
 	nsq "github.com/nsqio/go-nsq"
 	"github.com/qiniu/log.v1"
 	"qiniu.com/avaspark/configs"
@@ -20,10 +22,15 @@ func main() {
 	}
 	cfg := configs.GlobalConfig
 	log.Debugf("config:%v", cfg)
+	conf := nsq.NewConfig()
+	//conf.MsgTimeout = 60 * time.Minute
+	conf.Set("msg_timeout", 2*time.Hour)
+	print(time.Hour)
+	log.Debugf("conf:%v", *conf)
 	consumerHelper := &queue.ConsumerHelper{
 		Topic:   "avaspark",
 		Channel: "worker",
-		Conf:    nsq.NewConfig(),
+		Conf:    conf,
 		NSQDs:   []string{"127.0.0.1:4150"},
 	}
 	consumer, err := worker.NewConsumer(&cfg, consumerHelper)

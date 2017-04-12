@@ -5,16 +5,19 @@ import (
 	"time"
 )
 
-func TestClient(t *testing.T) {
+func testClient(t *testing.T) {
 	client := &LivyClient{
 		BaseURL: "http://61.153.154.154:8998",
 	}
 	handle, err := client.SubmitJob(Job{
-		File: "/pi.py",
-		Args: []string{"5"},
+		UID: "1",
+		LivyJob: LivyJob{
+			File: "/pi.py",
+			Args: []string{"5"},
+		},
 	})
 
-	callback := func(state JobStateResult) {
+	callback := func(state JobState) {
 		t.Logf("Livy listener:%v", state)
 	}
 	if err != nil {

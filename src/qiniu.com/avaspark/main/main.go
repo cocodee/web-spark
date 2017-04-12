@@ -36,9 +36,12 @@ func main() {
 	tea.Provide(mongodb)
 	pulpServiceProvider := services.NewPulpServiceProvider(cfg.SparkHost, cfg.PulpConf)
 	tea.Provide(pulpServiceProvider)
+	livyServiceProvider := services.NewLivyServiceProvider(cfg.SparkHost, services.LivyServiceConf{})
+	tea.Provide(livyServiceProvider)
 	tea.Routers(
 		teapot.Any(services.Default),
 		teapot.Router("/fetch", teapot.Post(&services.PulpService{}).Action("SubmitJob")),
+		teapot.Router("/submit", teapot.Post(&services.LivyService{}).Action("SubmitJob")),
 	)
 
 	if err := tea.Run(); err != nil {

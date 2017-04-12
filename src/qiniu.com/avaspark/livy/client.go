@@ -16,7 +16,7 @@ type JobResult struct {
 }
 
 //Job is a livy job config struct
-type Job struct {
+type LivyJob struct {
 	File           string                 `json:"file"`
 	Args           []string               `json:"args,omitempty"`
 	PyFiles        []string               `json:"pyFiles,omitempty"`
@@ -25,7 +25,11 @@ type Job struct {
 	ExecutorMemory string                 `json:"executorMemory,omitempty"`
 	ExecutorCores  int                    `json:"executorCores,omitempty"`
 	Conf           map[string]interface{} `json:"conf,omitempty"`
-	UID            string                 `json:"uid,omitempty"`
+}
+
+type Job struct {
+	UID     string  `json:"uid,omitempty"`
+	LivyJob LivyJob `json:"livyjob"`
 }
 
 //SubmitJob submits a job request to livy server and returns a JobHandle
@@ -38,7 +42,7 @@ func (client *LivyClient) sendRequest(job Job) (jobHandle *JobHandle, err error)
 	rpcClient := DefaultClient
 	result := JobResult{}
 	println(url1)
-	err = rpcClient.CallWithJson(nil, &result, http.MethodPost, url1, job)
+	err = rpcClient.CallWithJson(nil, &result, http.MethodPost, url1, job.LivyJob)
 	if err != nil {
 		return nil, err
 	}
