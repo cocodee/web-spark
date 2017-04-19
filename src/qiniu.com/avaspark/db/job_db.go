@@ -52,3 +52,33 @@ func UpdateJobState(db *MongoDB, batchJobID string, state string) (err error) {
 	}
 	return
 }
+
+func UpdateJobStateByAppID(db *MongoDB, appID string, state string) (err error) {
+	conn := db.NewConn()
+	defer conn.Close()
+
+	c := conn.C(CollectionBatchJob)
+	err = c.Update(bson.M{"spark_app_id": appID}, bson.M{"$set": bson.M{
+		"state":     state,
+		"update_at": time.Now()},
+	})
+	if err != nil {
+		log.Errorf("update mongodb failed:%v", appID)
+	}
+	return
+}
+
+func UPdateJobAppIDByBatchID(db *MongoDB, batchID string, appID string) (err error) {
+	conn := db.NewConn()
+	defer conn.Close()
+
+	c := conn.C(CollectionBatchJob)
+	err = c.Update(bson.M{"livy_batch_id": batchID}, bson.M{"$set": bson.M{
+		"spark_app_id": appID,
+		"update_at":    time.Now()},
+	})
+	if err != nil {
+		log.Errorf("update mongodb failed:%v", batchID)
+	}
+	return
+}

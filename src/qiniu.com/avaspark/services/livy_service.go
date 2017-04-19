@@ -105,10 +105,12 @@ func (l *LivyServiceProvider) SubmitJob(mdb *db.MongoDB, job livy.Job) (err erro
 			l.lock.Unlock()
 		}
 	})
-	jobHandle.Start()
-	l.lock.Lock()
-	l.jobHandles.PushBack(jobHandle)
-	l.lock.Unlock()
+	/*
+		jobHandle.Start()
+		l.lock.Lock()
+		l.jobHandles.PushBack(jobHandle)
+		l.lock.Unlock()
+	*/
 	return err
 }
 

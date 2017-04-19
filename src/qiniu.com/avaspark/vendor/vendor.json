@@ -1,6 +1,13 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [],
+	"package": [
+		{
+			"checksumSHA1": "kl5sxwTXEiekMlnxNL5nDoRa9sQ=",
+			"path": "github.com/pebbe/zmq4",
+			"revision": "7157c0d6df4e6bfcae60a6f20cffaee88ac1ab30",
+			"revisionTime": "2017-03-16T12:22:21Z"
+		}
+	],
 	"rootPath": "qiniu.com/avaspark"
 }
