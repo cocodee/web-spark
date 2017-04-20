@@ -10,8 +10,9 @@ type AvaSparkConf struct {
 		Address  string `json:"address"`
 		Database string `json:"database"`
 	} `json:"db"`
-	SparkHost string                   `json:"sparkHost`
-	PulpConf  services.PulpServiceConf `json:"pulpConf"`
+	SparkHost        string                   `json:"sparkHost`
+	SparkZmqEndpoint string                   `json:"sparkZmqEndpoint`
+	PulpConf         services.PulpServiceConf `json:"pulpConf"`
 }
 
 var GlobalConfig AvaSparkConf = AvaSparkConf{}

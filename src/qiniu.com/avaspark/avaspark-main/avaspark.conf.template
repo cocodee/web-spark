@@ -1,0 +1,13 @@
+{
+    "http_addr":"0.0.0.0",
+    "http_port":"9090",
+    "db":{
+        "address":"mongodb://115.238.147.153:27017,115.238.147.141:27017,115.238.147.148:27017",
+        "database":"avaspark"
+    },
+    "sparkHost":"http://61.153.154.157:8998",
+    "sparkZmqEndpoint":"tcp://61.153.154.157:5561",
+    "pulpConf":{
+        "file":"/pi.py"
+    }
+}

@@ -82,7 +82,8 @@ func (l *PulpServiceProvider) SubmitPulpJob(url string, mdb *db.MongoDB) (job li
 			PyFiles: l.Conf.PyFiles,
 		},
 	}
-	err = l.SubmitJob(mdb, job)
+	batchID, err := l.SubmitJob(mdb, job)
+	job.BatchID = batchID
 	return job, err
 }
 

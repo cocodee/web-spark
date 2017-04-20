@@ -42,12 +42,14 @@ func (l *LivyService) SubmitJob() (err error) {
 		UID:     uid,
 		LivyJob: *livyJob,
 	}
-	err = l.LivyServiceProvider.SubmitJob(l.DB, job)
+	batchID, err := l.LivyServiceProvider.SubmitJob(l.DB, job)
 	//err = l.LivyServiceProvider.QueueJob(job)
 	if err != nil {
 		net.ErrWriteResp(l.Rw, 401, err.Error(), nil)
 		return
 	}
+	log.Debug(batchID)
+	job.BatchID = batchID
 	net.WriteResp(l.Rw, job, nil)
 	//jobHandle, err := l.client.SubmitJob(job)
 	//l.jobHandles.PushBack(jobHandle)
@@ -73,7 +75,7 @@ type LivyServiceProvider struct {
 	lock       *sync.RWMutex
 }
 
-func (l *LivyServiceProvider) SubmitJob(mdb *db.MongoDB, job livy.Job) (err error) {
+func (l *LivyServiceProvider) SubmitJob(mdb *db.MongoDB, job livy.Job) (batchID string, err error) {
 	//uid, _ := uuid.Gen(16)
 	job_json, err := json.Marshal(job)
 	log.Debugf("job:%v", string(job_json))
@@ -111,7 +113,7 @@ func (l *LivyServiceProvider) SubmitJob(mdb *db.MongoDB, job livy.Job) (err erro
 		l.jobHandles.PushBack(jobHandle)
 		l.lock.Unlock()
 	*/
-	return err
+	return jobHandle.GetBatchID(), err
 }
 
 func (l *LivyServiceProvider) QueueJob(job livy.Job) (err error) {

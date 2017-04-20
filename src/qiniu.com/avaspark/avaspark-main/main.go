@@ -44,7 +44,7 @@ func main() {
 		teapot.Router("/fetch", teapot.Post(&services.PulpService{}).Action("SubmitJob")),
 		teapot.Router("/submit", teapot.Post(&services.LivyService{}).Action("SubmitJob")),
 	)
-	zmqcallback.Connect("tcp://61.153.154.157:5561", func(msgs []string) {
+	zmqcallback.Connect(cfg.SparkZmqEndpoint, func(msgs []string) {
 		zmqcallback.MessageHandler(mongodb, msgs)
 	})
 	if err := tea.Run(); err != nil {

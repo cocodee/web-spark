@@ -29,6 +29,7 @@ type LivyJob struct {
 
 type Job struct {
 	UID     string  `json:"uid,omitempty"`
+	BatchID string  `json:"batchid, omitempty"`
 	LivyJob LivyJob `json:"livyjob"`
 }
 
