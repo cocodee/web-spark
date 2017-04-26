@@ -65,3 +65,18 @@ Response
 # Spark Admin and Monitor
 - [Spark History Server](http://61.153.154.173:18080)
 - [Yarn Applications](http://115.238.147.143:8088/cluster)
+- [Zeppelin Server](http://http://61.153.154.136:8080)
+- yarn aggregation log directory:qiniu://ava-spark/tmp/logs/
+
+# AVA Spark Web
+- [AVA Spark Web](http://61.153.154.176:9090)
+
+## AVA Spark Web Api
+### baseurl:61.153.154.176:9090
+#### POST /submit
+```json
+Request Body
+{
+    "file":"/pi.py",
+    "args":["5"]
+}

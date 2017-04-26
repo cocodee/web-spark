@@ -24,6 +24,7 @@ type LivyJob struct {
 	DriverCores    int                    `json:"driverCores,omitempty"`
 	ExecutorMemory string                 `json:"executorMemory,omitempty"`
 	ExecutorCores  int                    `json:"executorCores,omitempty"`
+	NumExecutors   int                    `json:"numExecutors,omitempty"`
 	Conf           map[string]interface{} `json:"conf,omitempty"`
 }
 
